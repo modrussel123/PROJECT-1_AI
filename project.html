@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI PROJECT</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        #default-location {
+            background-color: #e0e0e0;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #attractions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 1.2em;
+        }
+        #result h3 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        .error {
+            color: red;
+            font-size: 1.1em;
+        }
+
+     
+
+        h5{
+           margin: 0;
+        }
+
+        .student-info{
+            position: absolute;
+            top: 0;
+            left: 0;
+           
+            margin: 10px;
+        }
+
+  
+    </style>
+</head>
+<body>
+    <h1>Ilocos Norte Route Planner</h1>
+
+    <div class="student-info">
+<h5 class="name">John Russel S. Ancheta</h5>
+<h5 class="course">BSCS 3 - A</h5>
+<h5 class="id">22 - 020579</h5>
+<h5 class="id">(Problem 3)</h5>
+</div>
+    
+    <div id="default-location">
+        Starting & Ending Point: Fort Ilocandia Resort 
+    </div>
+
+    <div id="attractions">
+        <label><input type="checkbox" value="Paoay Church"> Paoay Church</label>
+        <label><input type="checkbox" value="Bangui Windmills"> Bangui Windmills</label>
+        <label><input type="checkbox" value="Cape Bojeador"> Cape Bojeador Lighthouse</label>
+        <label><input type="checkbox" value="Pagudpud Beach"> Pagudpud Beach</label>
+    </div>
+
+    <button onclick="calculateRoute()">Find Best Route</button>
+    
+    <div id="result"></div>
+
+    <script>
+        // [Previous JavaScript remains the same as in the last submission]
+        const distances = {
+            'Fort Ilocandia': {
+                'Paoay Church': 20,
+                'Bangui Windmills': 90,
+                'Cape Bojeador': 80,
+                'Pagudpud Beach': 120
+            },
+            'Paoay Church': {
+                'Fort Ilocandia': 20,
+                'Bangui Windmills': 70,
+                'Cape Bojeador': 60,
+                'Pagudpud Beach': 100
+            },
+            'Bangui Windmills': {
+                'Fort Ilocandia': 90,
+                'Paoay Church': 70,
+                'Cape Bojeador': 30,
+                'Pagudpud Beach': 50
+            },
+            'Cape Bojeador': {
+                'Fort Ilocandia': 80,
+                'Paoay Church': 60,
+                'Bangui Windmills': 30,
+                'Pagudpud Beach': 40
+            },
+            'Pagudpud Beach': {
+                'Fort Ilocandia': 120,
+                'Paoay Church': 100,
+                'Bangui Windmills': 50,
+                'Cape Bojeador': 40
+            }
+        };
+
+        function findShortestRoute(start, destinations) {
+            // Simple greedy approach to find a reasonable route
+            let currentLocation = start;
+            let route = [start];
+            let totalDistance = 0;
+            let remainingDestinations = [...destinations];
+
+            while (remainingDestinations.length > 0) {
+                // Find nearest unvisited destination
+                let nearestDest = remainingDestinations.reduce((nearest, dest) => {
+                    const distance = distances[currentLocation][dest];
+                    return distance < distances[currentLocation][nearest] ? dest : nearest;
+                });
+
+                // Add to route and update distance
+                totalDistance += distances[currentLocation][nearestDest];
+                route.push(nearestDest);
+                currentLocation = nearestDest;
+                remainingDestinations = remainingDestinations.filter(d => d !== nearestDest);
+            }
+
+            // Return to start
+            totalDistance += distances[currentLocation][start];
+            route.push(start);
+
+            return { route, totalDistance };
+        }
+
+        function calculateRoute() {
+            const resultContainer = document.getElementById('result');
+            resultContainer.innerHTML = ''; // Clear previous results
+        
+            const selectedAttractions = Array.from(
+                document.querySelectorAll('#attractions input:checked')
+            ).map(input => input.value);
+        
+            if (selectedAttractions.length === 0) {
+                resultContainer.innerHTML = `
+                    <p style="color: red;">Please select at least one attraction!</p>
+                `;
+                return;
+            }
+        
+            const start = 'Fort Ilocandia';
+            const result = findShortestRoute(start, selectedAttractions);
+        
+            resultContainer.innerHTML = `
+                <h3>Optimal Route</h3>
+                <p>Route: ${result.route.join(' → ')}</p>
+                <p>Total Distance: ${result.totalDistance} km</p>
+            `;
+        }
+        
+    </script>
+</body>
+</html>
